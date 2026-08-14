@@ -1,0 +1,20 @@
+# C++ build files
+build/
+bin/
+*.o
+*.obj
+*.exe
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
