@@ -24,6 +24,11 @@ public:
         const string& routerB
     );
 
+    bool hasLink(
+    const string& routerA,
+    const string& routerB
+    ) const;
+
     void displayGraph() const;
 };
 

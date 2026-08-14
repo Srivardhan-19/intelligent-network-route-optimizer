@@ -39,6 +39,23 @@ void Graph::removeLink(
     );
 }
 
+bool Graph::hasLink(
+    const string& routerA,
+    const string& routerB
+) const {
+    auto it = adjacencyList.find(routerA);
+
+    if (it == adjacencyList.end()) {
+        return false;
+    }
+
+    return find(
+        it->second.begin(),
+        it->second.end(),
+        routerB
+    ) != it->second.end();
+}
+
 void Graph::displayGraph() const {
     for (const auto& entry : adjacencyList) {
         cout << entry.first << " -> ";
