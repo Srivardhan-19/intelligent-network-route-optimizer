@@ -12,13 +12,19 @@ void Graph::addRouter(const string& routerId) {
 
 void Graph::addLink(
     const string& routerA,
-    const string& routerB
+    const string& routerB,
+    int weight
 ) {
     addRouter(routerA);
     addRouter(routerB);
 
-    adjacencyList[routerA].push_back(routerB);
-    adjacencyList[routerB].push_back(routerA);
+    adjacencyList[routerA].push_back(
+        {routerB, weight}
+    );
+
+    adjacencyList[routerB].push_back(
+        {routerA, weight}
+    );
 }
 
 void Graph::removeLink(
@@ -29,12 +35,24 @@ void Graph::removeLink(
     auto& neighborsB = adjacencyList[routerB];
 
     neighborsA.erase(
-        remove(neighborsA.begin(), neighborsA.end(), routerB),
+        remove_if(
+            neighborsA.begin(),
+            neighborsA.end(),
+            [&](const pair<string, int>& edge) {
+                return edge.first == routerB;
+            }
+        ),
         neighborsA.end()
     );
 
     neighborsB.erase(
-        remove(neighborsB.begin(), neighborsB.end(), routerA),
+        remove_if(
+            neighborsB.begin(),
+            neighborsB.end(),
+            [&](const pair<string, int>& edge) {
+                return edge.first == routerA;
+            }
+        ),
         neighborsB.end()
     );
 }
@@ -49,14 +67,16 @@ bool Graph::hasLink(
         return false;
     }
 
-    return find(
-        it->second.begin(),
-        it->second.end(),
-        routerB
-    ) != it->second.end();
+    for (const auto& edge : it->second) {
+        if (edge.first == routerB) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
-vector<string> Graph::getNeighbors(
+vector<pair<string, int>> Graph::getNeighbors(
     const string& routerId
 ) const {
 
@@ -74,7 +94,7 @@ void Graph::displayGraph() const {
         cout << entry.first << " -> ";
 
         for (const auto& neighbor : entry.second) {
-            cout << neighbor << " ";
+            cout << neighbor.first << "("<<neighbor.second<<")";
         }
 
         cout << "\n";
