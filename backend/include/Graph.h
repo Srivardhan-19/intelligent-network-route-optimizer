@@ -29,6 +29,10 @@ public:
     const string& routerB
     ) const;
 
+    vector<string> getNeighbors(
+        const string& routerId
+    ) const;
+
     void displayGraph() const;
 };
 

@@ -56,6 +56,19 @@ bool Graph::hasLink(
     ) != it->second.end();
 }
 
+vector<string> Graph::getNeighbors(
+    const string& routerId
+) const {
+
+    auto it = adjacencyList.find(routerId);
+
+    if (it == adjacencyList.end()) {
+        return {};
+    }
+
+    return it->second;
+}
+
 void Graph::displayGraph() const {
     for (const auto& entry : adjacencyList) {
         cout << entry.first << " -> ";
