@@ -121,30 +121,30 @@ int main() {
 
     cout << "========== ROUTING COMPARISON ==========\n";
 
-cout << "BFS:\n";
-cout << "  Objective: minimum hops\n";
-cout << "  Hops: "
-     << bfsResult.path.size() - 1
-     << "\n";
+    cout << "BFS:\n";
+    cout << "  Objective: minimum hops\n";
+    cout << "  Hops: "
+        << bfsResult.path.size() - 1
+        << "\n";
 
-cout << "\nDijkstra:\n";
-cout << "  Objective: minimum cost\n";
-cout << "  Cost: "
-     << dijkstraResult.cost
-     << "\n";
+    cout << "\nDijkstra:\n";
+    cout << "  Objective: minimum cost\n";
+    cout << "  Cost: "
+        << dijkstraResult.cost
+        << "\n";
 
-cout << "\nBellman-Ford:\n";
-cout << "  Objective: minimum cost\n";
-cout << "  Cost: "
-     << bellmanResult.cost
-     << "\n";
+    cout << "\nBellman-Ford:\n";
+    cout << "  Objective: minimum cost\n";
+    cout << "  Cost: "
+        << bellmanResult.cost
+        << "\n";
 
-cout << "\nConclusion:\n";
-cout << "  BFS optimizes hop count.\n";
-cout << "  Dijkstra optimizes network cost.\n";
-cout << "  Bellman-Ford verifies the minimum-cost route.\n";
+    cout << "\nConclusion:\n";
+    cout << "  BFS optimizes hop count.\n";
+    cout << "  Dijkstra optimizes network cost.\n";
+    cout << "  Bellman-Ford verifies the minimum-cost route.\n";
 
-cout << "=========================================\n\n";
+    cout << "=========================================\n\n";
 
     // ------------------------------------------------
     // Final comparison
