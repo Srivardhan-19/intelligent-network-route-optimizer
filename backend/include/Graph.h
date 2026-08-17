@@ -4,13 +4,14 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include<utility>
+
+#include "LinkInfo.h"
 
 using namespace std;
 
 class Graph {
 private:
-    unordered_map<string, vector<pair<string,int>>> adjacencyList;
+    unordered_map<string, vector<LinkInfo>> adjacencyList;
 
 public:
     void addRouter(const string& routerId);
@@ -18,8 +19,10 @@ public:
     void addLink(
         const string& routerA,
         const string& routerB,
-        int weight=1
-        );
+        int cost = 1,
+        int latency = 0,
+        int bandwidth = 0
+    );
 
     void removeLink(
         const string& routerA,
@@ -27,11 +30,11 @@ public:
     );
 
     bool hasLink(
-    const string& routerA,
-    const string& routerB
+        const string& routerA,
+        const string& routerB
     ) const;
 
-    vector<pair<string,int>> getNeighbors(
+    vector<LinkInfo> getNeighbors(
         const string& routerId
     ) const;
 

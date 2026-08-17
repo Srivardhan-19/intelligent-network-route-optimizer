@@ -1,19 +1,19 @@
-#ifndef DIJKSTRA_H
-#define DIJKSTRA_H
+#ifndef BALANCED_ROUTING_H
+#define BALANCED_ROUTING_H
 
 #include "Graph.h"
 #include "RoutingResult.h"
-#include "RoutingMetric.h"
+#include "RoutingWeights.h"
 
 using namespace std;
 
-class Dijkstra {
+class BalancedRouting {
 public:
-    static RoutingResult findShortestPath(
+    static RoutingResult findBestRoute(
         const Graph& graph,
         const string& source,
         const string& destination,
-        RoutingMetric metric = RoutingMetric::COST
+        const RoutingWeights& weights
     );
 };
 

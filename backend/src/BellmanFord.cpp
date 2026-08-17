@@ -51,7 +51,7 @@ RoutingResult BellmanFord::findShortestPath(
 
         for (const auto& edge : graph.getNeighbors(current)) {
 
-            string neighbor = edge.first;
+            string neighbor = edge.router;
 
             if (!visited[neighbor]) {
                 stack.push_back(neighbor);
@@ -92,8 +92,8 @@ RoutingResult BellmanFord::findShortestPath(
             for (const auto& edge :
                  graph.getNeighbors(router)) {
 
-                string neighbor = edge.first;
-                int weight = edge.second;
+                string neighbor = edge.router;
+                int weight = edge.cost;
 
                 int newDistance =
                     distance[router] + weight;
@@ -124,8 +124,8 @@ RoutingResult BellmanFord::findShortestPath(
         for (const auto& edge :
              graph.getNeighbors(router)) {
 
-            string neighbor = edge.first;
-            int weight = edge.second;
+            string neighbor = edge.router;
+            int weight = edge.cost;
 
             if (distance[router] + weight <
                 distance[neighbor]) {

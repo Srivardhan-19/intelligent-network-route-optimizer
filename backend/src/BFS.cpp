@@ -39,11 +39,11 @@ RoutingResult BFS::findShortestPath(
         string current = q.front();
         q.pop();
         
-        vector<pair<string,int>> neighbors =
+        vector<LinkInfo> neighbors =
             graph.getNeighbors(current);
 
         for (const auto& edge : neighbors) {
-            string neighbor = edge.first;
+            string neighbor = edge.router;
 
             if (visited.find(neighbor) != visited.end()) {
                 continue;

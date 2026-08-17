@@ -7,10 +7,36 @@
 
 using namespace std;
 
+static int getRoutingWeight(
+    const LinkInfo& edge,
+    RoutingMetric metric
+) {
+    switch (metric) {
+
+        case RoutingMetric::COST:
+            return edge.cost;
+
+        case RoutingMetric::LATENCY:
+            return edge.latency;
+
+        case RoutingMetric::BANDWIDTH:
+            // Higher bandwidth is better,
+            // so convert it into a value that Dijkstra minimizes.
+            if (edge.bandwidth <= 0) {
+                return numeric_limits<int>::max();
+            }
+
+            return 1000000 / edge.bandwidth;
+    }
+
+    return edge.cost;
+}
+
 RoutingResult Dijkstra::findShortestPath(
     const Graph& graph,
     const string& source,
-    const string& destination
+    const string& destination,
+    RoutingMetric metric
 ) {
     RoutingResult result;
 
@@ -61,13 +87,13 @@ RoutingResult Dijkstra::findShortestPath(
         }
 
         // Examine all connected routers
-        vector<pair<string, int>> neighbors =
+        vector<LinkInfo> neighbors =
             graph.getNeighbors(current);
 
         for (const auto& edge : neighbors) {
 
-            string neighbor = edge.first;
-            int weight = edge.second;
+            string neighbor = edge.router;
+            int weight = getRoutingWeight(edge,metric);
 
             int newDistance =
                 currentDistance + weight;

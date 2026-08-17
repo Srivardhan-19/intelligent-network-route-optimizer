@@ -1,4 +1,5 @@
 #include "Graph.h"
+
 #include <iostream>
 #include <algorithm>
 
@@ -13,17 +14,19 @@ void Graph::addRouter(const string& routerId) {
 void Graph::addLink(
     const string& routerA,
     const string& routerB,
-    int weight
+    int cost,
+    int latency,
+    int bandwidth
 ) {
     addRouter(routerA);
     addRouter(routerB);
 
     adjacencyList[routerA].push_back(
-        {routerB, weight}
+        {routerB, cost, latency, bandwidth}
     );
 
     adjacencyList[routerB].push_back(
-        {routerA, weight}
+        {routerA, cost, latency, bandwidth}
     );
 }
 
@@ -38,8 +41,8 @@ void Graph::removeLink(
         remove_if(
             neighborsA.begin(),
             neighborsA.end(),
-            [&](const pair<string, int>& edge) {
-                return edge.first == routerB;
+            [&](const LinkInfo& edge) {
+                return edge.router == routerB;
             }
         ),
         neighborsA.end()
@@ -49,8 +52,8 @@ void Graph::removeLink(
         remove_if(
             neighborsB.begin(),
             neighborsB.end(),
-            [&](const pair<string, int>& edge) {
-                return edge.first == routerA;
+            [&](const LinkInfo& edge) {
+                return edge.router == routerA;
             }
         ),
         neighborsB.end()
@@ -68,7 +71,7 @@ bool Graph::hasLink(
     }
 
     for (const auto& edge : it->second) {
-        if (edge.first == routerB) {
+        if (edge.router == routerB) {
             return true;
         }
     }
@@ -76,7 +79,7 @@ bool Graph::hasLink(
     return false;
 }
 
-vector<pair<string, int>> Graph::getNeighbors(
+vector<LinkInfo> Graph::getNeighbors(
     const string& routerId
 ) const {
 
@@ -91,10 +94,16 @@ vector<pair<string, int>> Graph::getNeighbors(
 
 void Graph::displayGraph() const {
     for (const auto& entry : adjacencyList) {
+
         cout << entry.first << " -> ";
 
         for (const auto& neighbor : entry.second) {
-            cout << neighbor.first << "("<<neighbor.second<<")";
+
+            cout << neighbor.router
+                 << "(cost=" << neighbor.cost
+                 << ", latency=" << neighbor.latency
+                 << ", bandwidth=" << neighbor.bandwidth
+                 << ") ";
         }
 
         cout << "\n";
