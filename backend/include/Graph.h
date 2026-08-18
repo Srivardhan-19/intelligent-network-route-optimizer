@@ -15,7 +15,8 @@ private:
 
 public:
     void addRouter(const string& routerId);
-
+    void removeRouter(const string& routerId);
+    
     void addLink(
         const string& routerA,
         const string& routerB,

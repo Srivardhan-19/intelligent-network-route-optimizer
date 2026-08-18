@@ -11,6 +11,33 @@ void Graph::addRouter(const string& routerId) {
     }
 }
 
+void Graph::removeRouter(const string& routerId) {
+    auto it = adjacencyList.find(routerId);
+
+    if (it == adjacencyList.end()) {
+        return;
+    }
+
+    // Remove all links pointing to this router
+    for (auto& entry : adjacencyList) {
+        auto& neighbors = entry.second;
+
+        neighbors.erase(
+            remove_if(
+                neighbors.begin(),
+                neighbors.end(),
+                [&](const LinkInfo& edge) {
+                    return edge.router == routerId;
+                }
+            ),
+            neighbors.end()
+        );
+    }
+
+    // Remove the router itself
+    adjacencyList.erase(it);
+}
+
 void Graph::addLink(
     const string& routerA,
     const string& routerB,
