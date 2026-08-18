@@ -16,7 +16,7 @@ private:
 public:
     void addRouter(const string& routerId);
     void removeRouter(const string& routerId);
-    
+
     void addLink(
         const string& routerA,
         const string& routerB,
@@ -24,6 +24,14 @@ public:
         int latency = 0,
         int bandwidth = 0
     );
+
+    void updateLink(
+    const string& routerA,
+    const string& routerB,
+    int cost,
+    int latency,
+    int bandwidth
+);
 
     void removeLink(
         const string& routerA,

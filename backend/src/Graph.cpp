@@ -57,6 +57,38 @@ void Graph::addLink(
     );
 }
 
+void Graph::updateLink(
+    const string& routerA,
+    const string& routerB,
+    int cost,
+    int latency,
+    int bandwidth
+) {
+    auto itA = adjacencyList.find(routerA);
+    auto itB = adjacencyList.find(routerB);
+
+    if (itA == adjacencyList.end() ||
+        itB == adjacencyList.end()) {
+        return;
+    }
+
+    for (auto& edge : itA->second) {
+        if (edge.router == routerB) {
+            edge.cost = cost;
+            edge.latency = latency;
+            edge.bandwidth = bandwidth;
+        }
+    }
+
+    for (auto& edge : itB->second) {
+        if (edge.router == routerA) {
+            edge.cost = cost;
+            edge.latency = latency;
+            edge.bandwidth = bandwidth;
+        }
+    }
+}
+
 void Graph::removeLink(
     const string& routerA,
     const string& routerB
