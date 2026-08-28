@@ -296,6 +296,168 @@ This confirmed that the addition of multiple network metrics did not break the e
 
 ---
 
+# Phase 4 — Dynamic Network Topology ✅
+
+Phase 4 extended the network graph to support dynamic changes to routers, links, and link metrics.
+
+The routing algorithms can now operate on the updated network topology without requiring the graph to be recreated.
+
+---
+
+## Dynamic Router Management
+
+The graph now supports dynamic router management.
+
+### Completed
+
+* Adding routers
+* Deleting routers
+* Duplicate router handling
+* Nonexistent router handling
+* Removing connected links when a router is deleted
+
+When a router is deleted, all links connected to that router are also removed from the graph.
+
+---
+
+## Dynamic Link Management
+
+The graph now supports dynamic link management.
+
+### Completed
+
+* Adding links
+* Removing links
+* Updating link information
+* Updating cost
+* Updating latency
+* Updating bandwidth
+* Maintaining reverse-link consistency
+* Nonexistent link handling
+
+Since the network is undirected, changes to a link are reflected in both directions.
+
+For example:
+
+```text
+R1 ───────── R2
+
+Update:
+Cost
+Latency
+Bandwidth
+
+↓
+
+R1 ───────── R2
+Updated metrics stored in both directions
+```
+
+---
+
+## Dynamic Graph Testing
+
+Dynamic graph operations were tested through complete topology modification sequences.
+
+```text
+Create routers
+      ↓
+Create links
+      ↓
+Update link metrics
+      ↓
+Delete link
+      ↓
+Delete router
+      ↓
+Verify remaining topology
+```
+
+The tests verified that the graph remains consistent after multiple topology changes.
+
+All dynamic graph tests passed.
+
+---
+
+## Routing After Topology Changes
+
+The existing routing algorithms were tested after changes were made to the network topology.
+
+The routing system recalculates routes using the current state of the graph.
+
+### Tested Routing Algorithms
+
+* BFS
+* Dijkstra
+* Bellman-Ford
+
+### Tested Multi-Metric Routing
+
+* Cost routing
+* Latency routing
+* Bandwidth routing
+
+### Tested Advanced Routing
+
+* Weighted routing
+* Balanced routing
+
+The tests confirmed that routing adapts correctly after:
+
+* Adding links
+* Removing links
+* Updating link metrics
+* Deleting routers
+* Making destinations unreachable
+
+All routing topology-change tests passed.
+
+---
+
+## Phase 4 Integration Testing
+
+A complete integration test was created to verify the interaction between dynamic topology management and routing.
+
+The integration flow is:
+
+```text
+Create routers
+      ↓
+Create links
+      ↓
+Run routing
+      ↓
+Update link metrics
+      ↓
+Run routing again
+      ↓
+Delete links
+      ↓
+Run routing again
+      ↓
+Delete router
+      ↓
+Verify final topology
+```
+
+### Integration Test Results
+
+```text
+Test 1 passed: routers created
+Test 2 passed: links created with network metrics
+Test 3 passed: initial cost route is R1 -> R2 -> R4
+Test 4 passed: route changed after metric update
+Test 5 passed: reverse link metrics updated correctly
+Test 6 passed: routing uses remaining route after link deletion
+Test 7 passed: routing detects unreachable destination
+Test 8 passed: router deletion removes connected topology
+Test 9 passed: final graph topology is consistent
+
+All Phase 4 integration tests passed!
+```
+
+---
+
 # Current Architecture
 
 The routing system developed so far can be summarized as:
@@ -304,42 +466,57 @@ The routing system developed so far can be summarized as:
                     Network Graph
                          │
                          ▼
-                    Link Metrics
+                  Dynamic Topology
+                         │
               ┌──────────┼──────────┐
               ▼          ▼          ▼
-            Cost       Latency    Bandwidth
-              │          │          │
-              └──────────┼──────────┘
-                         ▼
-                  Metric Normalization
-                         │
-                         ▼
-                    Route Scoring
-                         │
-                         ▼
-                  Routing Algorithms
-              ┌──────────┼──────────┐
-              ▼          ▼          ▼
-             BFS      Dijkstra   Bellman-Ford
-                         │
-                         ▼
-                  Balanced Routing
-                         │
-                         ▼
-                   Selected Route
+           Routers      Links    Link Metrics
+                                    │
+                         ┌──────────┼──────────┐
+                         ▼          ▼          ▼
+                       Cost      Latency    Bandwidth
+                         │          │          │
+                         └──────────┼──────────┘
+                                    ▼
+                            Metric Normalization
+                                    │
+                                    ▼
+                              Route Scoring
+                                    │
+                                    ▼
+                           Routing Algorithms
+                         ┌──────────┼──────────┐
+                         ▼          ▼          ▼
+                        BFS      Dijkstra   Bellman-Ford
+                                    │
+                                    ▼
+                             Weighted Routing
+                                    │
+                                    ▼
+                             Balanced Routing
+                                    │
+                                    ▼
+                              Selected Route
 ```
 
 # Current Project Status
 
 ```text
 Phase 1 — Graph Foundation
+
 Complete ✅
 
 Phase 2 — Routing Algorithms
+
 Complete ✅
 
 Phase 3 — Network Metrics & Multi-Metric Routing
+
+Complete ✅
+
+Phase 4 — Dynamic Network Topology
+
 Complete ✅
 ```
 
-**Current status: Phase 3 complete.**
+**Current status: Phase 4 complete.**
