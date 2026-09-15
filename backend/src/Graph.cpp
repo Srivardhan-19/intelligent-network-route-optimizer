@@ -151,6 +151,17 @@ vector<LinkInfo> Graph::getNeighbors(
     return it->second;
 }
 
+vector<string> Graph::getRouters() const {
+
+    vector<string> routers;
+
+    for (const auto& entry : adjacencyList) {
+        routers.push_back(entry.first);
+    }
+
+    return routers;
+}
+
 void Graph::displayGraph() const {
     for (const auto& entry : adjacencyList) {
 

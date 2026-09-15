@@ -48,6 +48,7 @@ public:
     ) const;
 
     void displayGraph() const;
+    vector<string> getRouters() const;
 };
 
 #endif

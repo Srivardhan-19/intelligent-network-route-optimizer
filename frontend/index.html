@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Intelligent Network Route Optimizer</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <div>
+            <h1>Intelligent Network Route Optimizer</h1>
+            <p>DSA-based network routing simulator</p>
+        </div>
+    </header>
+
+
+    <main class="app-container">
+
+        <!-- LEFT: NETWORK CONTROLS -->
+        <section class="panel network-panel">
+
+            <h2>Network Controls</h2>
+
+            <!-- Router Controls -->
+            <div class="control-group">
+
+                <h3>Router</h3>
+
+                <div class="input-row">
+
+                    <input
+                        type="text"
+                        id="routerId"
+                        placeholder="Router ID"
+                    >
+
+                    <button id="addRouterBtn">
+                        Add
+                    </button>
+
+                </div>
+
+
+                <div class="input-row">
+
+                    <input
+                        type="text"
+                        id="deleteRouterId"
+                        placeholder="Router ID"
+                    >
+
+                    <button id="deleteRouterBtn">
+                        Delete
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Link Controls -->
+            <div class="control-group">
+
+                <h3>Link</h3>
+
+                <div class="input-row">
+
+                    <input
+                        type="text"
+                        id="routerA"
+                        placeholder="Router A"
+                    >
+
+                    <input
+                        type="text"
+                        id="routerB"
+                        placeholder="Router B"
+                    >
+
+                </div>
+
+
+                <div class="input-row">
+
+                    <input
+                        type="number"
+                        id="cost"
+                        placeholder="Cost"
+                        min="0"
+                    >
+
+                    <input
+                        type="number"
+                        id="latency"
+                        placeholder="Latency"
+                        min="0"
+                    >
+
+                    <input
+                        type="number"
+                        id="bandwidth"
+                        placeholder="Bandwidth"
+                        min="0"
+                    >
+
+                </div>
+
+
+                <div class="button-row">
+
+                    <button id="addLinkBtn">
+                        Add Link
+                    </button>
+
+                    <button id="updateLinkBtn">
+                        Update
+                    </button>
+
+                </div>
+
+
+                <button
+                    id="deleteLinkBtn"
+                    class="delete-button"
+                >
+                    Delete Link
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- CENTER: ROUTING -->
+        <section class="panel routing-panel">
+
+            <h2>Routing</h2>
+
+
+            <div class="control-group">
+
+                <label for="source">
+                    Source Router
+                </label>
+
+                <input
+                    type="text"
+                    id="source"
+                    placeholder="e.g. R1"
+                >
+
+            </div>
+
+
+            <div class="control-group">
+
+                <label for="destination">
+                    Destination Router
+                </label>
+
+                <input
+                    type="text"
+                    id="destination"
+                    placeholder="e.g. R4"
+                >
+
+            </div>
+
+
+            <div class="control-group">
+
+                <label for="algorithm">
+                    Algorithm
+                </label>
+
+                <select id="algorithm">
+
+                    <option value="bfs">
+                        BFS
+                    </option>
+
+                    <option value="dijkstra">
+                        Dijkstra
+                    </option>
+
+                    <option value="bellman-ford">
+                        Bellman-Ford
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="control-group">
+
+                <label for="metric">
+                    Routing Metric
+                </label>
+
+                <select id="metric">
+
+                    <option value="cost">
+                        Cost
+                    </option>
+
+                    <option value="latency">
+                        Latency
+                    </option>
+
+                    <option value="bandwidth">
+                        Bandwidth
+                    </option>
+
+                    <option value="balanced">
+                        Balanced
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button
+                id="findRouteBtn"
+                class="route-button"
+            >
+                Find Route
+            </button>
+
+        </section>
+
+
+        <!-- RIGHT: VISUALIZATION -->
+        <section class="panel visualization-panel">
+
+            <div class="section-header">
+
+                <h2>Network Visualization</h2>
+
+                <span id="networkStatus">
+                    Ready
+                </span>
+
+            </div>
+
+
+            <div id="networkCanvas">
+
+                Network visualization will appear here.
+
+            </div>
+
+        </section>
+
+
+        <!-- BOTTOM: ROUTING RESULT -->
+        <section class="panel result-panel">
+
+            <h2>Routing Result</h2>
+
+            <div id="routingResult">
+
+                <p>
+                    Select a source, destination,
+                    algorithm and metric to calculate a route.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer class="footer">
+
+        <p>
+            Intelligent Network Route Optimizer
+        </p>
+
+    </footer>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

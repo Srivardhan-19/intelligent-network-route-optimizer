@@ -458,65 +458,153 @@ All Phase 4 integration tests passed!
 
 ---
 
-# Current Architecture
+# Phase 5 — Frontend & Final Integration ✅
 
-The routing system developed so far can be summarized as:
+Phase 5 added the frontend interface and backend API layer for interacting with the network routing system.
+
+## Frontend
+
+The frontend is implemented using:
+
+* HTML
+* CSS
+* JavaScript
+* SVG
+
+The interface is organized into:
+
+* Network Controls
+* Routing
+* Visualization
+* Routing Result
+
+### Network Controls
+
+The frontend supports:
+
+* Adding routers
+* Deleting routers
+* Adding links
+* Updating link metrics
+* Deleting links
+* Input validation
+
+### Network Visualization
+
+The network topology is visualized using SVG.
+
+The visualization displays:
+
+* Routers
+* Network links
+* Link cost
+* Link latency
+* Link bandwidth
+* Selected route highlighting
+
+The visualization updates when the network topology changes.
+
+### Routing Interface
+
+The frontend provides controls for:
+
+* Source router
+* Destination router
+* Routing algorithm
+* Routing metric
+* Find Route operation
+
+The available routing algorithms are:
+
+* BFS
+* Dijkstra
+* Bellman-Ford
+
+The actual routing algorithms remain implemented in the C++ backend. Frontend-to-backend routing integration will be completed in Phase 6 using Node.js.
+
+---
+
+## Network API
+
+A `NetworkAPI` interface was added to provide a higher-level interface between the frontend-facing API layer and the C++ network graph.
+
+The API supports:
+
+* Adding routers
+* Removing routers
+* Adding links
+* Updating links
+* Removing links
+* Finding routes
+* Retrieving network information as JSON
+
+---
+
+## Network JSON
+
+The network topology can be exported as JSON containing:
+
+* Routers
+* Links
+* Cost
+* Latency
+* Bandwidth
+
+The JSON output was tested after:
+
+* Adding routers
+* Updating link metrics
+* Removing links
+
+All Network JSON tests passed.
+
+---
+
+## Router API Testing
+
+The Router API was tested for:
+
+* Adding routers
+* Duplicate router handling
+* Creating router connections
+* Deleting routers
+* Removing connected links
+* Nonexistent router handling
+* Final topology consistency
+
+Test results:
 
 ```text
-                    Network Graph
-                         │
-                         ▼
-                  Dynamic Topology
-                         │
-              ┌──────────┼──────────┐
-              ▼          ▼          ▼
-           Routers      Links    Link Metrics
-                                    │
-                         ┌──────────┼──────────┐
-                         ▼          ▼          ▼
-                       Cost      Latency    Bandwidth
-                         │          │          │
-                         └──────────┼──────────┘
-                                    ▼
-                            Metric Normalization
-                                    │
-                                    ▼
-                              Route Scoring
-                                    │
-                                    ▼
-                           Routing Algorithms
-                         ┌──────────┼──────────┐
-                         ▼          ▼          ▼
-                        BFS      Dijkstra   Bellman-Ford
-                                    │
-                                    ▼
-                             Weighted Routing
-                                    │
-                                    ▼
-                             Balanced Routing
-                                    │
-                                    ▼
-                              Selected Route
-```
+Test 1 passed: routers added through API
+Test 2 passed: duplicate router handled
+Test 3 passed: router connections created
+Test 4 passed: router deleted with connected links
+Test 5 passed: remaining topology is consistent
+Test 6 passed: nonexistent router handled
+
+All Router API tests passed!
+
 
 # Current Project Status
 
 ```text
 Phase 1 — Graph Foundation
-
 Complete ✅
 
 Phase 2 — Routing Algorithms
-
 Complete ✅
 
 Phase 3 — Network Metrics & Multi-Metric Routing
-
 Complete ✅
 
 Phase 4 — Dynamic Network Topology
-
 Complete ✅
-```
 
-**Current status: Phase 4 complete.**
+Phase 5 — Frontend & Final Integration
+Complete ✅
+
+Phase 6 — Node.js Backend Integration
+Not started ⏳
+
+Phase 7 — Deployment & Final Validation
+Not started ⏳
