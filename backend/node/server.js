@@ -1,0 +1,359 @@
+const http = require("http");
+const { spawn } = require("child_process");
+const readline = require("readline");
+const path = require("path");
+
+const PORT = 3000;
+
+const cppExecutable = path.join(
+    __dirname,
+    "api_server.exe"
+);
+
+const cppProcess = spawn(cppExecutable);
+
+const cppReader = readline.createInterface({
+    input: cppProcess.stdout
+});
+
+const pendingRequests = [];
+
+cppReader.on("line", (line) => {
+
+    const request = pendingRequests.shift();
+
+    if (!request) {
+        return;
+    }
+
+    try {
+        const response = JSON.parse(line);
+
+        request.resolve(response);
+    }
+    catch (error) {
+
+        request.reject(
+            new Error("Invalid response from C++ backend")
+        );
+    }
+});
+
+cppProcess.stderr.on("data", (data) => {
+
+    console.error(
+        "C++ backend:",
+        data.toString()
+    );
+});
+
+cppProcess.on("error", (error) => {
+
+    console.error(
+        "Failed to start C++ backend:",
+        error.message
+    );
+});
+
+function sendToCpp(command) {
+
+    return new Promise((resolve, reject) => {
+
+        pendingRequests.push({
+            resolve,
+            reject
+        });
+
+        cppProcess.stdin.write(
+            JSON.stringify(command) + "\n"
+        );
+    });
+}
+
+function sendJson(response, statusCode, data) {
+
+    response.writeHead(
+        statusCode,
+        {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        }
+    );
+
+    response.end(
+        JSON.stringify(data)
+    );
+}
+
+function parseRequestBody(request) {
+
+    return new Promise((resolve, reject) => {
+
+        let body = "";
+
+        request.on("data", (chunk) => {
+            body += chunk;
+        });
+
+        request.on("end", () => {
+
+            if (!body) {
+                resolve({});
+                return;
+            }
+
+            try {
+                resolve(JSON.parse(body));
+            }
+            catch (error) {
+                reject(
+                    new Error("Invalid JSON request")
+                );
+            }
+        });
+    });
+}
+
+const server = http.createServer(
+    async (request, response) => {
+
+        if (request.method === "OPTIONS") {
+
+            response.writeHead(
+                204,
+                {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods":
+                        "GET,POST,PUT,DELETE,OPTIONS",
+                    "Access-Control-Allow-Headers":
+                        "Content-Type"
+                }
+            );
+
+            response.end();
+
+            return;
+        }
+
+        try {
+
+            if (
+                request.method === "GET" &&
+                request.url === "/api/network"
+            ) {
+
+                const result =
+                    await sendToCpp({
+                        action: "getNetwork"
+                    });
+
+                sendJson(
+                    response,
+                    200,
+                    result
+                );
+
+                return;
+            }
+
+            if (
+                request.method === "POST" &&
+                request.url === "/api/router"
+            ) {
+
+                const body =
+                    await parseRequestBody(request);
+
+                const result =
+                    await sendToCpp({
+                        action: "addRouter",
+                        routerId: body.routerId
+                    });
+
+                sendJson(
+                    response,
+                    200,
+                    result
+                );
+
+                return;
+            }
+
+            if (
+                request.method === "DELETE" &&
+                request.url === "/api/router"
+            ) {
+
+                const body =
+                    await parseRequestBody(request);
+
+                const result =
+                    await sendToCpp({
+                        action: "removeRouter",
+                        routerId: body.routerId
+                    });
+
+                sendJson(
+                    response,
+                    200,
+                    result
+                );
+
+                return;
+            }
+
+            if (
+                request.method === "POST" &&
+                request.url === "/api/link"
+            ) {
+
+                const body =
+                    await parseRequestBody(request);
+
+                const result =
+                    await sendToCpp({
+                        action: "addLink",
+                        routerA: body.routerA,
+                        routerB: body.routerB,
+                        cost: body.cost,
+                        latency: body.latency,
+                        bandwidth: body.bandwidth
+                    });
+
+                sendJson(
+                    response,
+                    200,
+                    result
+                );
+
+                return;
+            }
+
+            if (
+                request.method === "PUT" &&
+                request.url === "/api/link"
+            ) {
+
+                const body =
+                    await parseRequestBody(request);
+
+                const result =
+                    await sendToCpp({
+                        action: "updateLink",
+                        routerA: body.routerA,
+                        routerB: body.routerB,
+                        cost: body.cost,
+                        latency: body.latency,
+                        bandwidth: body.bandwidth
+                    });
+
+                sendJson(
+                    response,
+                    200,
+                    result
+                );
+
+                return;
+            }
+
+            if (
+                request.method === "DELETE" &&
+                request.url === "/api/link"
+            ) {
+
+                const body =
+                    await parseRequestBody(request);
+
+                const result =
+                    await sendToCpp({
+                        action: "removeLink",
+                        routerA: body.routerA,
+                        routerB: body.routerB
+                    });
+
+                sendJson(
+                    response,
+                    200,
+                    result
+                );
+
+                return;
+            }
+
+            if (
+                request.method === "POST" &&
+                request.url === "/api/route"
+            ) {
+
+                const body =
+                    await parseRequestBody(request);
+
+                const result =
+                    await sendToCpp({
+                        action: "findRoute",
+                        source: body.source,
+                        destination: body.destination,
+                        algorithm: body.algorithm,
+                        metric: body.metric || "COST"
+                    });
+
+                sendJson(
+                    response,
+                    200,
+                    result
+                );
+
+                return;
+            }
+
+            sendJson(
+                response,
+                404,
+                {
+                    error: "Endpoint not found"
+                }
+            );
+        }
+        catch (error) {
+
+            console.error(error);
+
+            sendJson(
+                response,
+                500,
+                {
+                    error: error.message
+                }
+            );
+        }
+    }
+);
+
+server.listen(
+    PORT,
+    () => {
+
+        console.log(
+            `Node.js server running on http://localhost:${PORT}`
+        );
+
+        console.log(
+            "C++ backend process started."
+        );
+    }
+);
+
+process.on("SIGINT", () => {
+
+    cppProcess.stdin.write(
+        JSON.stringify({
+            action: "exit"
+        }) + "\n"
+    );
+
+    cppProcess.kill();
+
+    server.close();
+
+    process.exit(0);
+});

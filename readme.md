@@ -583,11 +583,167 @@ Test 5 passed: remaining topology is consistent
 Test 6 passed: nonexistent router handled
 
 All Router API tests passed!
+# Phase 6 — Node.js Backend Integration
 
+Phase 6 connected the HTML/CSS/JavaScript frontend with the existing C++ routing backend through a Node.js API server.
 
-# Current Project Status
+## Architecture
 
 ```text
+Frontend
+    ↓ HTTP / JSON
+Node.js API Server
+    ↓ stdin / stdout JSON
+C++ API Bridge
+    ↓
+NetworkAPI
+    ↓
+Graph + Routing Algorithms
+```
+
+## Node.js Backend
+
+Implemented a Node.js HTTP API server using Node.js built-in modules.
+
+The API provides:
+
+* Get network topology
+* Add router
+* Delete router
+* Add link
+* Update link
+* Delete link
+* Find route
+
+The Node.js server communicates with the existing C++ routing system without moving the routing algorithms into JavaScript.
+
+## C++ API Bridge
+
+Implemented a C++ API bridge to connect the Node.js server with the existing C++ backend.
+
+The bridge communicates using JSON messages through standard input and output.
+
+This allows the Node.js server to send network and routing requests to the C++ `NetworkAPI` while keeping the existing graph and routing architecture unchanged.
+
+## Frontend Integration
+
+The frontend was connected to the Node.js API.
+
+The frontend now performs network operations through the backend instead of handling the network state only in JavaScript.
+
+Implemented:
+
+* Router creation through API
+* Router deletion through API
+* Link creation through API
+* Link metric updates through API
+* Link deletion through API
+* Network topology loading from backend
+* Route calculation through backend
+* Route result display
+* Route visualization and highlighting
+
+## API Operations
+
+The following backend operations were integrated with the frontend:
+
+```text
+GET    /api/network
+POST   /api/router
+DELETE /api/router
+POST   /api/link
+PUT    /api/link
+DELETE /api/link
+POST   /api/route
+```
+
+## Routing Integration
+
+The frontend can request routes from the C++ routing algorithms through the Node.js backend.
+
+Supported algorithms:
+
+* BFS
+* Dijkstra
+* Bellman-Ford
+
+Supported routing metrics:
+
+* Cost
+* Latency
+* Bandwidth
+
+The calculated route is returned from the C++ backend and displayed in the frontend.
+
+The selected route is also highlighted in the network visualization.
+
+## CORS Configuration
+
+Cross-origin communication was configured so that the frontend running through Live Server can communicate with the Node.js API server.
+
+The API supports the required HTTP methods:
+
+```text
+GET
+POST
+PUT
+DELETE
+OPTIONS
+```
+
+## Phase 6 Integration Testing
+
+The complete frontend → Node.js → C++ integration was tested successfully.
+
+Verified:
+
+```text
+Router creation                    Passed
+Link creation                     Passed
+Link update                       Passed
+Link deletion                     Passed
+Router deletion                   Passed
+Network visualization             Passed
+BFS routing                       Passed
+Dijkstra routing                  Passed
+Bellman-Ford routing              Passed
+Cost metric routing               Passed
+Latency metric routing            Passed
+Bandwidth metric routing          Passed
+Unreachable route detection       Passed
+Route visualization               Passed
+```
+
+### Final Integration Test
+
+A complete topology update and routing workflow was also tested:
+
+```text
+1. Created routers R1, R2, R3 and R4
+2. Created multiple network links
+3. Calculated an initial route
+4. Updated link metrics
+5. Verified that routing changed accordingly
+6. Deleted a link
+7. Verified the remaining route
+8. Deleted router R3
+9. Verified that its connected links were removed
+10. Verified that the remaining network topology was consistent
+```
+
+All Phase 6 integration tests passed.
+
+## Phase 6 Status
+
+```text
+Phase 6 — Node.js Backend Integration
+Complete ✅
+```
+
+---
+
+## Current Project Status
+
 Phase 1 — Graph Foundation
 Complete ✅
 
@@ -604,7 +760,7 @@ Phase 5 — Frontend & Final Integration
 Complete ✅
 
 Phase 6 — Node.js Backend Integration
-Not started ⏳
+Complete ✅
 
 Phase 7 — Deployment & Final Validation
 Not started ⏳

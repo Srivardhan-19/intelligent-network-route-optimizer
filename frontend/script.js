@@ -1,6 +1,6 @@
 // ==========================================
 // Intelligent Network Route Optimizer
-// Phase 5.2 - SVG Network Visualization
+// Phase 6 - Node.js Backend Integration
 // ==========================================
 
 let routers = [];
@@ -17,6 +17,91 @@ const routingResult =
 
 
 // ==========================================
+// Node.js API
+// ==========================================
+
+const API_BASE_URL =
+    "http://localhost:3000/api";
+
+
+async function sendApiRequest(
+    endpoint,
+    options = {}
+) {
+
+    const response =
+        await fetch(
+            `${API_BASE_URL}${endpoint}`,
+            {
+                ...options,
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+
+                    ...(options.headers || {})
+                }
+            }
+        );
+
+    const data =
+        await response.json();
+
+    if (
+        !response.ok ||
+        data.error
+    ) {
+
+        throw new Error(
+            data.error ||
+            "API request failed."
+        );
+    }
+
+    return data;
+}
+
+
+// ==========================================
+// Load Network From Backend
+// ==========================================
+
+async function loadNetwork() {
+
+    try {
+
+        const network =
+            await sendApiRequest(
+                "/network"
+            );
+
+        routers =
+            network.routers || [];
+
+        links =
+            network.links || [];
+
+        selectedRoute = [];
+
+        renderNetwork();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Failed to load network:",
+            error
+        );
+
+        alert(
+            "Could not connect to the Node.js backend. " +
+            "Make sure the server is running."
+        );
+    }
+}
+
+
+// ==========================================
 // Initialize SVG
 // ==========================================
 
@@ -30,11 +115,23 @@ function initializeSVG() {
             "svg"
         );
 
-    svg.setAttribute("width", "100%");
-    svg.setAttribute("height", "100%");
-    svg.setAttribute("viewBox", "0 0 800 500");
+    svg.setAttribute(
+        "width",
+        "100%"
+    );
 
-    svg.id = "networkSVG";
+    svg.setAttribute(
+        "height",
+        "100%"
+    );
+
+    svg.setAttribute(
+        "viewBox",
+        "0 0 800 500"
+    );
+
+    svg.id =
+        "networkSVG";
 
     networkCanvas.appendChild(svg);
 }
@@ -44,20 +141,32 @@ function initializeSVG() {
 // Add Router
 // ==========================================
 
-function addRouter(routerId) {
+async function addRouter(routerId) {
 
     if (!routerId) {
         return;
     }
 
-    if (routers.includes(routerId)) {
-        alert("Router already exists.");
-        return;
+    try {
+
+        await sendApiRequest(
+            "/router",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    routerId: routerId
+                })
+            }
+        );
+
+        await loadNetwork();
+
     }
+    catch (error) {
 
-    routers.push(routerId);
-
-    renderNetwork();
+        alert(error.message);
+    }
 }
 
 
@@ -65,31 +174,32 @@ function addRouter(routerId) {
 // Delete Router
 // ==========================================
 
-function deleteRouter(routerId) {
+async function deleteRouter(routerId) {
 
     if (!routerId) {
         return;
     }
 
-    if (!routers.includes(routerId)) {
-        alert("Router does not exist.");
-        return;
+    try {
+
+        await sendApiRequest(
+            "/router",
+            {
+                method: "DELETE",
+
+                body: JSON.stringify({
+                    routerId: routerId
+                })
+            }
+        );
+
+        await loadNetwork();
+
     }
+    catch (error) {
 
-    routers = routers.filter(
-        router => router !== routerId
-    );
-
-    // Remove links connected to router
-    links = links.filter(
-        link =>
-            link.routerA !== routerId &&
-            link.routerB !== routerId
-    );
-
-    selectedRoute = [];
-
-    renderNetwork();
+        alert(error.message);
+    }
 }
 
 
@@ -97,7 +207,7 @@ function deleteRouter(routerId) {
 // Add Link
 // ==========================================
 
-function addLink(
+async function addLink(
     routerA,
     routerB,
     cost,
@@ -109,45 +219,36 @@ function addLink(
         return;
     }
 
-    if (routerA === routerB) {
-        alert("A router cannot connect to itself.");
-        return;
+    try {
+
+        await sendApiRequest(
+            "/link",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    routerA: routerA,
+                    routerB: routerB,
+
+                    cost:
+                        Number(cost),
+
+                    latency:
+                        Number(latency),
+
+                    bandwidth:
+                        Number(bandwidth)
+                })
+            }
+        );
+
+        await loadNetwork();
+
     }
+    catch (error) {
 
-    if (
-        !routers.includes(routerA) ||
-        !routers.includes(routerB)
-    ) {
-        alert("Both routers must exist.");
-        return;
+        alert(error.message);
     }
-
-    const exists = links.some(
-        link =>
-            (
-                link.routerA === routerA &&
-                link.routerB === routerB
-            ) ||
-            (
-                link.routerA === routerB &&
-                link.routerB === routerA
-            )
-    );
-
-    if (exists) {
-        alert("Link already exists.");
-        return;
-    }
-
-    links.push({
-        routerA: routerA,
-        routerB: routerB,
-        cost: Number(cost),
-        latency: Number(latency),
-        bandwidth: Number(bandwidth)
-    });
-
-    renderNetwork();
 }
 
 
@@ -155,7 +256,7 @@ function addLink(
 // Update Link
 // ==========================================
 
-function updateLink(
+async function updateLink(
     routerA,
     routerB,
     cost,
@@ -163,28 +264,40 @@ function updateLink(
     bandwidth
 ) {
 
-    const link = links.find(
-        link =>
-            (
-                link.routerA === routerA &&
-                link.routerB === routerB
-            ) ||
-            (
-                link.routerA === routerB &&
-                link.routerB === routerA
-            )
-    );
-
-    if (!link) {
-        alert("Link does not exist.");
+    if (!routerA || !routerB) {
         return;
     }
 
-    link.cost = Number(cost);
-    link.latency = Number(latency);
-    link.bandwidth = Number(bandwidth);
+    try {
 
-    renderNetwork();
+        await sendApiRequest(
+            "/link",
+            {
+                method: "PUT",
+
+                body: JSON.stringify({
+                    routerA: routerA,
+                    routerB: routerB,
+
+                    cost:
+                        Number(cost),
+
+                    latency:
+                        Number(latency),
+
+                    bandwidth:
+                        Number(bandwidth)
+                })
+            }
+        );
+
+        await loadNetwork();
+
+    }
+    catch (error) {
+
+        alert(error.message);
+    }
 }
 
 
@@ -192,35 +305,36 @@ function updateLink(
 // Delete Link
 // ==========================================
 
-function deleteLink(
+async function deleteLink(
     routerA,
     routerB
 ) {
 
-    const oldLength = links.length;
-
-    links = links.filter(
-        link =>
-            !(
-                (
-                    link.routerA === routerA &&
-                    link.routerB === routerB
-                ) ||
-                (
-                    link.routerA === routerB &&
-                    link.routerB === routerA
-                )
-            )
-    );
-
-    if (links.length === oldLength) {
-        alert("Link does not exist.");
+    if (!routerA || !routerB) {
         return;
     }
 
-    selectedRoute = [];
+    try {
 
-    renderNetwork();
+        await sendApiRequest(
+            "/link",
+            {
+                method: "DELETE",
+
+                body: JSON.stringify({
+                    routerA: routerA,
+                    routerB: routerB
+                })
+            }
+        );
+
+        await loadNetwork();
+
+    }
+    catch (error) {
+
+        alert(error.message);
+    }
 }
 
 
@@ -233,12 +347,15 @@ function getRouterPosition(
     index
 ) {
 
-    const total = routers.length;
+    const total =
+        routers.length;
 
     const centerX = 400;
+
     const centerY = 250;
 
     const radius = 180;
+
 
     if (total === 1) {
 
@@ -248,18 +365,23 @@ function getRouterPosition(
         };
     }
 
+
     const angle =
-        (2 * Math.PI * index) / total;
+        (2 * Math.PI * index) /
+        total;
+
 
     return {
 
         x:
             centerX +
-            radius * Math.cos(angle),
+            radius *
+            Math.cos(angle),
 
         y:
             centerY +
-            radius * Math.sin(angle)
+            radius *
+            Math.sin(angle)
     };
 }
 
@@ -285,16 +407,19 @@ function isLinkInRoute(
         const second =
             selectedRoute[i + 1];
 
+
         if (
             (
                 first === routerA &&
                 second === routerB
-            ) ||
+            )
+            ||
             (
                 first === routerB &&
                 second === routerA
             )
         ) {
+
             return true;
         }
     }
@@ -310,21 +435,28 @@ function isLinkInRoute(
 function renderNetwork() {
 
     const svg =
-        document.getElementById("networkSVG");
+        document.getElementById(
+            "networkSVG"
+        );
+
 
     if (!svg) {
+
         initializeSVG();
+
         return;
     }
 
+
     svg.innerHTML = "";
+
 
     const positions = {};
 
 
-    // --------------------------------------
-    // Calculate router positions
-    // --------------------------------------
+// --------------------------------------
+// Calculate router positions
+// --------------------------------------
 
     routers.forEach(
         (router, index) => {
@@ -338,22 +470,28 @@ function renderNetwork() {
     );
 
 
-    // --------------------------------------
-    // Draw links
-    // --------------------------------------
+// --------------------------------------
+// Draw links
+// --------------------------------------
 
     links.forEach(
         link => {
 
             const start =
-                positions[link.routerA];
+                positions[
+                    link.routerA
+                ];
 
             const end =
-                positions[link.routerB];
+                positions[
+                    link.routerB
+                ];
+
 
             if (!start || !end) {
                 return;
             }
+
 
             const highlighted =
                 isLinkInRoute(
@@ -362,12 +500,16 @@ function renderNetwork() {
                 );
 
 
-            // Line
+// --------------------------------
+// Line
+// --------------------------------
+
             const line =
                 document.createElementNS(
                     "http://www.w3.org/2000/svg",
                     "line"
                 );
+
 
             line.setAttribute(
                 "x1",
@@ -389,12 +531,14 @@ function renderNetwork() {
                 end.y
             );
 
+
             line.setAttribute(
                 "stroke",
                 highlighted
                     ? "#2563eb"
                     : "#94a3b8"
             );
+
 
             line.setAttribute(
                 "stroke-width",
@@ -403,12 +547,13 @@ function renderNetwork() {
                     : "3"
             );
 
+
             svg.appendChild(line);
 
 
-            // --------------------------------
-            // Link metrics
-            // --------------------------------
+// --------------------------------
+// Link metrics
+// --------------------------------
 
             const text =
                 document.createElementNS(
@@ -416,39 +561,45 @@ function renderNetwork() {
                     "text"
                 );
 
+
             text.setAttribute(
                 "x",
                 (start.x + end.x) / 2
             );
+
 
             text.setAttribute(
                 "y",
                 (start.y + end.y) / 2 - 10
             );
 
+
             text.setAttribute(
                 "text-anchor",
                 "middle"
             );
+
 
             text.setAttribute(
                 "font-size",
                 "13"
             );
 
+
             text.textContent =
                 `C:${link.cost}  ` +
                 `L:${link.latency}  ` +
                 `B:${link.bandwidth}`;
+
 
             svg.appendChild(text);
         }
     );
 
 
-    // --------------------------------------
-    // Draw routers
-    // --------------------------------------
+// --------------------------------------
+// Draw routers
+// --------------------------------------
 
     routers.forEach(
         router => {
@@ -457,79 +608,100 @@ function renderNetwork() {
                 positions[router];
 
 
-            // Circle
+// --------------------------------
+// Circle
+// --------------------------------
+
             const circle =
                 document.createElementNS(
                     "http://www.w3.org/2000/svg",
                     "circle"
                 );
 
+
             circle.setAttribute(
                 "cx",
                 position.x
             );
+
 
             circle.setAttribute(
                 "cy",
                 position.y
             );
 
+
             circle.setAttribute(
                 "r",
                 "30"
             );
+
 
             circle.setAttribute(
                 "fill",
                 "#ffffff"
             );
 
+
             circle.setAttribute(
                 "stroke",
                 "#2563eb"
             );
+
 
             circle.setAttribute(
                 "stroke-width",
                 "4"
             );
 
+
             svg.appendChild(circle);
 
 
-            // Router ID
+// --------------------------------
+// Router ID
+// --------------------------------
+
             const text =
                 document.createElementNS(
                     "http://www.w3.org/2000/svg",
                     "text"
                 );
 
+
             text.setAttribute(
                 "x",
                 position.x
             );
+
 
             text.setAttribute(
                 "y",
                 position.y + 5
             );
 
+
             text.setAttribute(
                 "text-anchor",
                 "middle"
             );
+
 
             text.setAttribute(
                 "font-size",
                 "16"
             );
 
+
             text.setAttribute(
                 "font-weight",
                 "bold"
             );
 
-            text.textContent = router;
+
+            text.textContent =
+                router;
+
 
             svg.appendChild(text);
         }
@@ -548,7 +720,10 @@ function displayRoutingResult(
     cost
 ) {
 
-    if (!route || route.length === 0) {
+    if (
+        !route ||
+        route.length === 0
+    ) {
 
         routingResult.innerHTML =
             "<p>No route found.</p>";
@@ -560,7 +735,10 @@ function displayRoutingResult(
         return;
     }
 
-    selectedRoute = route;
+
+    selectedRoute =
+        route;
+
 
     routingResult.innerHTML = `
 
@@ -583,7 +761,9 @@ function displayRoutingResult(
             <strong>Cost:</strong>
             ${cost}
         </div>
+
     `;
+
 
     renderNetwork();
 }
@@ -595,218 +775,381 @@ function displayRoutingResult(
 
 initializeSVG();
 
+loadNetwork();
+
 
 // ==========================================
 // UI Event Handlers
 // ==========================================
 
+
+// ==========================================
 // Add Router
+// ==========================================
+
 document
     .getElementById("addRouterBtn")
-    .addEventListener("click", function () {
+    .addEventListener(
+        "click",
+        async function () {
 
-        const routerId =
+            const routerId =
+                document
+                    .getElementById(
+                        "routerId"
+                    )
+                    .value
+                    .trim();
+
+
+            await addRouter(
+                routerId
+            );
+
+
             document
-                .getElementById("routerId")
-                .value
-                .trim();
-
-        addRouter(routerId);
-
-        document
-            .getElementById("routerId")
-            .value = "";
-    });
+                .getElementById(
+                    "routerId"
+                )
+                .value = "";
+        }
+    );
 
 
+// ==========================================
 // Delete Router
+// ==========================================
+
 document
     .getElementById("deleteRouterBtn")
-    .addEventListener("click", function () {
+    .addEventListener(
+        "click",
+        async function () {
 
-        const routerId =
+            const routerId =
+                document
+                    .getElementById(
+                        "deleteRouterId"
+                    )
+                    .value
+                    .trim();
+
+
+            await deleteRouter(
+                routerId
+            );
+
+
             document
-                .getElementById("deleteRouterId")
-                .value
-                .trim();
-
-        deleteRouter(routerId);
-
-        document
-            .getElementById("deleteRouterId")
-            .value = "";
-    });
+                .getElementById(
+                    "deleteRouterId"
+                )
+                .value = "";
+        }
+    );
 
 
+// ==========================================
 // Add Link
+// ==========================================
+
 document
     .getElementById("addLinkBtn")
-    .addEventListener("click", function () {
+    .addEventListener(
+        "click",
+        async function () {
 
-        const routerA =
-            document
-                .getElementById("routerA")
-                .value
-                .trim();
-
-        const routerB =
-            document
-                .getElementById("routerB")
-                .value
-                .trim();
-
-        const cost =
-            document
-                .getElementById("cost")
-                .value;
-
-        const latency =
-            document
-                .getElementById("latency")
-                .value;
-
-        const bandwidth =
-            document
-                .getElementById("bandwidth")
-                .value;
-
-        addLink(
-            routerA,
-            routerB,
-            cost,
-            latency,
-            bandwidth
-        );
-    });
+            const routerA =
+                document
+                    .getElementById(
+                        "routerA"
+                    )
+                    .value
+                    .trim();
 
 
+            const routerB =
+                document
+                    .getElementById(
+                        "routerB"
+                    )
+                    .value
+                    .trim();
+
+
+            const cost =
+                document
+                    .getElementById(
+                        "cost"
+                    )
+                    .value;
+
+
+            const latency =
+                document
+                    .getElementById(
+                        "latency"
+                    )
+                    .value;
+
+
+            const bandwidth =
+                document
+                    .getElementById(
+                        "bandwidth"
+                    )
+                    .value;
+
+
+            await addLink(
+                routerA,
+                routerB,
+                cost,
+                latency,
+                bandwidth
+            );
+        }
+    );
+
+
+// ==========================================
 // Update Link
+// ==========================================
+
 document
     .getElementById("updateLinkBtn")
-    .addEventListener("click", function () {
+    .addEventListener(
+        "click",
+        async function () {
 
-        const routerA =
-            document
-                .getElementById("routerA")
-                .value
-                .trim();
-
-        const routerB =
-            document
-                .getElementById("routerB")
-                .value
-                .trim();
-
-        const cost =
-            document
-                .getElementById("cost")
-                .value;
-
-        const latency =
-            document
-                .getElementById("latency")
-                .value;
-
-        const bandwidth =
-            document
-                .getElementById("bandwidth")
-                .value;
-
-        updateLink(
-            routerA,
-            routerB,
-            cost,
-            latency,
-            bandwidth
-        );
-    });
+            const routerA =
+                document
+                    .getElementById(
+                        "routerA"
+                    )
+                    .value
+                    .trim();
 
 
+            const routerB =
+                document
+                    .getElementById(
+                        "routerB"
+                    )
+                    .value
+                    .trim();
+
+
+            const cost =
+                document
+                    .getElementById(
+                        "cost"
+                    )
+                    .value;
+
+
+            const latency =
+                document
+                    .getElementById(
+                        "latency"
+                    )
+                    .value;
+
+
+            const bandwidth =
+                document
+                    .getElementById(
+                        "bandwidth"
+                    )
+                    .value;
+
+
+            await updateLink(
+                routerA,
+                routerB,
+                cost,
+                latency,
+                bandwidth
+            );
+        }
+    );
+
+
+// ==========================================
 // Delete Link
+// ==========================================
+
 document
     .getElementById("deleteLinkBtn")
-    .addEventListener("click", function () {
+    .addEventListener(
+        "click",
+        async function () {
 
-        const routerA =
-            document
-                .getElementById("routerA")
-                .value
-                .trim();
+            const routerA =
+                document
+                    .getElementById(
+                        "routerA"
+                    )
+                    .value
+                    .trim();
 
-        const routerB =
-            document
-                .getElementById("routerB")
-                .value
-                .trim();
 
-        deleteLink(
-            routerA,
-            routerB
-        );
-    });
+            const routerB =
+                document
+                    .getElementById(
+                        "routerB"
+                    )
+                    .value
+                    .trim();
+
+
+            await deleteLink(
+                routerA,
+                routerB
+            );
+        }
+    );
+
+
+// ==========================================
+// Find Route
+// ==========================================
 
 document
     .getElementById("findRouteBtn")
-    .addEventListener("click", function () {
+    .addEventListener(
+        "click",
+        async function () {
 
-        const source =
-            document
-                .getElementById("source")
-                .value
-                .trim();
+            const source =
+                document
+                    .getElementById(
+                        "source"
+                    )
+                    .value
+                    .trim();
 
-        const destination =
-            document
-                .getElementById("destination")
-                .value
-                .trim();
 
-        const algorithm =
-            document
-                .getElementById("algorithm")
-                .value;
+            const destination =
+                document
+                    .getElementById(
+                        "destination"
+                    )
+                    .value
+                    .trim();
 
-        const metric =
-            document
-                .getElementById("metric")
-                .value;
 
-        if (source === "" || destination === "") {
-            alert("Please enter source and destination routers.");
-            return;
+            const algorithm =
+                document
+                    .getElementById(
+                        "algorithm"
+                    )
+                    .value;
+
+
+            const metric =
+                document
+                    .getElementById(
+                        "metric"
+                    )
+                    .value;
+
+
+            if (
+                source === "" ||
+                destination === ""
+            ) {
+
+                alert(
+                    "Please enter source and destination routers."
+                );
+
+                return;
+            }
+
+
+            if (
+                !routers.includes(
+                    source
+                )
+            ) {
+
+                alert(
+                    "Source router does not exist."
+                );
+
+                return;
+            }
+
+
+            if (
+                !routers.includes(
+                    destination
+                )
+            ) {
+
+                alert(
+                    "Destination router does not exist."
+                );
+
+                return;
+            }
+
+
+            try {
+
+                const result =
+                    await sendApiRequest(
+                        "/route",
+                        {
+                            method: "POST",
+
+                            body:
+                                JSON.stringify({
+                                    source:
+                                        source,
+
+                                    destination:
+                                        destination,
+
+                                    algorithm:
+                                        algorithm,
+
+                                    metric:
+                                        metric
+                                })
+                        }
+                    );
+
+
+                if (
+                    !result.found
+                ) {
+
+                    displayRoutingResult(
+                        algorithm,
+                        metric,
+                        [],
+                        -1
+                    );
+
+                    return;
+                }
+
+
+                displayRoutingResult(
+                    algorithm,
+                    metric,
+                    result.path,
+                    result.cost
+                );
+
+            }
+            catch (error) {
+
+                alert(
+                    error.message
+                );
+            }
         }
-
-        if (!routers.includes(source)) {
-            alert("Source router does not exist.");
-            return;
-        }
-
-        if (!routers.includes(destination)) {
-            alert("Destination router does not exist.");
-            return;
-        }
-
-        if (source === destination) {
-            displayRoutingResult(
-                algorithm,
-                metric,
-                [source],
-                0
-            );
-            return;
-        }
-
-        /*
-         * Temporary Phase 5 frontend test.
-         *
-         * Actual BFS / Dijkstra / Bellman-Ford
-         * execution will come from the C++ backend
-         * through Node.js in Phase 6.
-         */
-        displayRoutingResult(
-            algorithm,
-            metric,
-            [source, destination],
-            0
-        );
-    });
+    );
