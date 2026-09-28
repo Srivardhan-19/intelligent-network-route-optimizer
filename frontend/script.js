@@ -21,7 +21,7 @@ const routingResult =
 // ==========================================
 
 const API_BASE_URL =
-    "http://localhost:3000/api";
+    "/api";
 
 
 async function sendApiRequest(
@@ -758,7 +758,7 @@ function displayRoutingResult(
         </div>
 
         <div class="result-item">
-            <strong>Cost:</strong>
+            <strong>${metric}:</strong>
             ${cost}
         </div>
 

@@ -2,12 +2,19 @@ const http = require("http");
 const { spawn } = require("child_process");
 const readline = require("readline");
 const path = require("path");
+const fs = require("fs");
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
+const frontendDirectory = path.join(
+    __dirname,
+    "../../frontend"
+);
 const cppExecutable = path.join(
     __dirname,
-    "api_server.exe"
+    process.platform === "win32"
+        ? "api_server.exe"
+        : "api_server"
 );
 
 const cppProcess = spawn(cppExecutable);
@@ -306,6 +313,54 @@ const server = http.createServer(
                 return;
             }
 
+            if (request.method === "GET") {
+
+    let requestedPath = request.url.split("?")[0];
+
+    if (requestedPath === "/") {
+        requestedPath = "/index.html";
+    }
+
+    const filePath = path.join(
+        frontendDirectory,
+        requestedPath
+    );
+
+    if (filePath.startsWith(frontendDirectory)) {
+
+        if (fs.existsSync(filePath)) {
+
+            const extension =
+                path.extname(filePath);
+
+            const contentTypes = {
+                ".html": "text/html",
+                ".css": "text/css",
+                ".js": "application/javascript",
+                ".svg": "image/svg+xml",
+                ".png": "image/png",
+                ".jpg": "image/jpeg"
+            };
+
+            const contentType =
+                contentTypes[extension] ||
+                "application/octet-stream";
+
+            response.writeHead(
+                200,
+                {
+                    "Content-Type": contentType
+                }
+            );
+
+            response.end(
+                fs.readFileSync(filePath)
+            );
+
+            return;
+        }
+    }
+}
             sendJson(
                 response,
                 404,
@@ -331,6 +386,7 @@ const server = http.createServer(
 
 server.listen(
     PORT,
+    "0.0.0.0",
     () => {
 
         console.log(
