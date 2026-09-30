@@ -733,14 +733,424 @@ A complete topology update and routing workflow was also tested:
 
 All Phase 6 integration tests passed.
 
-## Phase 6 Status
+# Phase 7 — Deployment & Final Validation
+
+Phase 7 completed the deployment and final validation of the Intelligent Network Route Optimizer.
+
+## Production Deployment
+
+The application was deployed as a single web service using:
+
+- Docker
+- Node.js
+- C++
+- Render
+
+The Docker container includes:
+
+- Node.js runtime
+- C++ compiler
+- C++ routing backend
+- Node.js API server
+- Frontend HTML/CSS/JavaScript files
+
+The Docker image builds the C++ API bridge during deployment.
+
+## Production Architecture
 
 ```text
-Phase 6 — Node.js Backend Integration
-Complete ✅
-```
+Browser
+   ↓
+Render Web Service
+   ↓
+Node.js HTTP Server
+   ↓
+C++ API Bridge
+   ↓
+NetworkAPI
+   ↓
+Graph + Routing Algorithms
 
----
+COMPLETE DEPLOYMENT TEST
+
+1. ADD ROUTERS
+
+Add Router R1
+Add Router R2
+Add Router R3
+Add Router R4
+Add Router R5
+Add Router R6
+
+Expected:
+All six routers are created successfully.
+
+Result:
+PASSED
+
+
+2. ADD LINKS
+
+Add Link:
+R1 - R2
+Cost: 10
+Latency: 5
+Bandwidth: 100
+
+Add Link:
+R1 - R3
+Cost: 20
+Latency: 10
+Bandwidth: 80
+
+Add Link:
+R2 - R4
+Cost: 10
+Latency: 5
+Bandwidth: 100
+
+Add Link:
+R3 - R4
+Cost: 5
+Latency: 3
+Bandwidth: 80
+
+Add Link:
+R4 - R5
+Cost: 15
+Latency: 7
+Bandwidth: 90
+
+Add Link:
+R2 - R5
+Cost: 30
+Latency: 15
+Bandwidth: 70
+
+Add Link:
+R5 - R6
+Cost: 10
+Latency: 5
+Bandwidth: 90
+
+Add Link:
+R3 - R6
+Cost: 40
+Latency: 20
+Bandwidth: 60
+
+Expected:
+All eight links are created successfully with the specified network metrics.
+
+Result:
+PASSED
+
+
+3. CHECK NETWORK
+
+Display the current network topology.
+
+Expected:
+R1, R2, R3, R4, R5 and R6 are present.
+
+All eight links are present with their Cost, Latency and Bandwidth values.
+
+Result:
+PASSED
+
+
+4. DIJKSTRA — COST
+
+Source: R1
+Destination: R6
+Algorithm: Dijkstra
+Metric: Cost
+
+Expected Route:
+R1 → R2 → R4 → R5 → R6
+
+Expected Cost:
+45
+
+Calculation:
+10 + 10 + 15 + 10 = 45
+
+Result:
+PASSED
+
+
+5. DIJKSTRA — LATENCY
+
+Source: R1
+Destination: R6
+Algorithm: Dijkstra
+Metric: Latency
+
+Expected Route:
+R1 → R2 → R4 → R5 → R6
+
+Expected Latency:
+22
+
+Calculation:
+5 + 5 + 7 + 5 = 22
+
+Result:
+PASSED
+
+
+6. DIJKSTRA — BANDWIDTH
+
+Source: R1
+Destination: R6
+Algorithm: Dijkstra
+Metric: Bandwidth
+
+Observed Route:
+R1 → R3 → R6
+
+Observed Value:
+29166
+
+Result:
+PASSED
+
+
+7. UPDATE LINK
+
+Update Link:
+R1 - R2
+
+New Cost:
+50
+
+New Latency:
+25
+
+New Bandwidth:
+50
+
+Expected:
+The R1-R2 link is updated with the new network metrics.
+
+Result:
+PASSED
+
+
+8. CHECK UPDATED NETWORK
+
+Display the network topology again.
+
+Expected:
+The R1-R2 link contains:
+
+Cost: 50
+Latency: 25
+Bandwidth: 50
+
+Result:
+PASSED
+
+
+9. ROUTING AFTER LINK UPDATE
+
+Source: R1
+Destination: R6
+Algorithm: Dijkstra
+Metric: Cost
+
+Expected:
+The routing algorithm recalculates the route using the updated R1-R2 metrics.
+
+Result:
+PASSED
+
+
+10. DELETE LINK
+
+Delete Link:
+R3 - R6
+
+Expected:
+The R3-R6 connection is removed from the network.
+
+Result:
+PASSED
+
+
+11. CHECK NETWORK AFTER LINK DELETION
+
+Display the network topology.
+
+Expected:
+The R3-R6 link is no longer present.
+
+All other links remain unchanged.
+
+Result:
+PASSED
+
+
+12. ROUTING AFTER LINK DELETION
+
+Source: R1
+Destination: R6
+Algorithm: Dijkstra
+Metric: Cost
+
+Expected:
+The routing algorithm uses the remaining available network links.
+
+Result:
+PASSED
+
+
+13. DELETE ROUTER
+
+Delete Router:
+R3
+
+Expected:
+Router R3 is removed.
+
+All links connected to R3 are also removed.
+
+Result:
+PASSED
+
+
+14. CHECK NETWORK AFTER ROUTER DELETION
+
+Display the network topology.
+
+Expected:
+R3 is no longer present.
+
+All connections to R3 are removed.
+
+The remaining network topology is consistent.
+
+Result:
+PASSED
+
+
+15. UNREACHABLE ROUTE TEST
+
+Remove or modify the topology so that the destination router is unreachable.
+
+Source: R1
+Destination: R6
+Algorithm: Dijkstra
+Metric: Cost
+
+Expected:
+The system reports that no route exists.
+
+Expected Result:
+Route not found
+
+Result:
+PASSED
+
+
+16. BFS ROUTING TEST
+
+Source: R1
+Destination: R6
+Algorithm: BFS
+
+Expected:
+BFS successfully finds a route when a path exists.
+
+Result:
+PASSED
+
+
+17. BELLMAN-FORD ROUTING TEST
+
+Source: R1
+Destination: R6
+Algorithm: Bellman-Ford
+
+Expected:
+Bellman-Ford successfully finds a route when a path exists.
+
+Result:
+PASSED
+
+
+18. FRONTEND INTEGRATION TEST
+
+Test the following operations through the deployed frontend:
+
+Add Router
+Delete Router
+Add Link
+Update Link
+Delete Link
+Display Network
+Find Route
+Display Route Result
+Highlight Selected Route
+
+Result:
+PASSED
+
+
+19. DEPLOYMENT TEST
+
+Verify the complete application flow:
+
+Frontend
+    ↓
+Node.js API Server
+    ↓
+C++ API Bridge
+    ↓
+NetworkAPI
+    ↓
+Graph
+    ↓
+Routing Algorithms
+
+Expected:
+Frontend requests reach the Node.js server.
+
+Node.js communicates with the C++ API bridge.
+
+The C++ backend performs the requested graph or routing operation.
+
+The result is returned to the frontend.
+
+Result:
+PASSED
+
+
+20. FINAL PHASE 7 TEST RESULT
+
+Router creation              PASSED
+Router deletion              PASSED
+Link creation                PASSED
+Link update                  PASSED
+Link deletion                PASSED
+Network topology             PASSED
+
+BFS routing                  PASSED
+Dijkstra routing             PASSED
+Bellman-Ford routing         PASSED
+
+Cost routing                 PASSED
+Latency routing              PASSED
+Bandwidth routing            PASSED
+
+Frontend integration         PASSED
+Node.js integration          PASSED
+C++ backend integration      PASSED
+
+Docker deployment            PASSED
+Production deployment        PASSED
+
+
 
 ## Current Project Status
 
@@ -763,4 +1173,6 @@ Phase 6 — Node.js Backend Integration
 Complete ✅
 
 Phase 7 — Deployment & Final Validation
-Not started ⏳
+Complete ✅
+
+
